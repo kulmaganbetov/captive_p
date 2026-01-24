@@ -45,13 +45,29 @@ const Home = () => {
       // Тестовый режим (с реальным Robokassa в тестовом режиме)
       const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
+      console.log('💳 Payment initiated:', {
+        email,
+        plan: selectedPlan,
+        isDemoMode,
+        envDemoMode: import.meta.env.VITE_DEMO_MODE,
+      });
+
       if (isDemoMode) {
+        console.log('🔧 DEMO MODE ENABLED');
+
         // Генерируем уникальный ID счета
         const invId = Math.floor(Math.random() * 1000000);
 
         // Получаем тестовые креденшиалы из .env
         const merchantLogin = import.meta.env.VITE_ROBOKASSA_LOGIN || 'demo';
         const merchantPassword1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1 || 'password_1';
+
+        console.log('🔑 Robokassa credentials:', {
+          merchantLogin,
+          hasPassword: !!merchantPassword1,
+          invId,
+          outSum: selectedPlan.price,
+        });
 
         // Генерируем URL для Robokassa
         const robokassaUrl = await generateRobokassaUrl({
@@ -68,10 +84,13 @@ const Home = () => {
           isTest: 1, // Тестовый режим
         });
 
+        console.log('🔗 Generated Robokassa URL:', robokassaUrl);
+
         // Имитируем задержку (как будто отправляем запрос на бэкенд)
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Перенаправляем на Robokassa
+        console.log('➡️ Redirecting to Robokassa...');
         window.location.href = robokassaUrl;
         return;
       }

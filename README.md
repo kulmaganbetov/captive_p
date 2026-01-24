@@ -81,8 +81,12 @@ VITE_ROBOKASSA_PASSWORD2=your_test_password_2
 3. Перейдите в раздел "Технические настройки"
 4. Включите "Тестовый режим"
 5. Выберите алгоритм хеширования **SHA256** (важно!)
-6. Скопируйте MerchantLogin, Password#1 и Password#2
-7. Вставьте их в файл `.env`
+6. **⚠️ КРИТИЧНО: Настройте URL для перенаправления:**
+   - **Success URL**: `https://ваш-домен.vercel.app/success`
+   - **Fail URL**: `https://ваш-домен.vercel.app/fail`
+   - **Result URL**: URL вашего бэкенда (опционально)
+7. Скопируйте MerchantLogin, Password#1 и Password#2
+8. Вставьте их в файл `.env` или в Environment Variables на Vercel
 
 **В демо-режиме:**
 - ✅ Оплата работает без реального бэкенда
@@ -127,20 +131,34 @@ npm run preview
 
 ## Деплой на Vercel
 
-1. Установите Vercel CLI (опционально):
-```bash
-npm i -g vercel
-```
+### ⚠️ ВАЖНО: Настройка Environment Variables
 
-2. Деплой через GitHub:
-   - Подключите репозиторий к Vercel
-   - Добавьте переменную окружения `VITE_API_BASE_URL` в настройках проекта
-   - Vercel автоматически развернет приложение
+Перед деплоем обязательно настройте переменные окружения в Vercel:
 
-3. Или используйте CLI:
-```bash
-vercel --prod
-```
+1. Откройте ваш проект на Vercel
+2. Перейдите в **Settings** → **Environment Variables**
+3. Добавьте следующие переменные:
+
+**Для демо-режима (тестирование):**
+- `VITE_DEMO_MODE` = `true`
+- `VITE_ROBOKASSA_LOGIN` = ваш тестовый логин из Robokassa
+- `VITE_ROBOKASSA_PASSWORD1` = ваш Password#1 из Robokassa
+- `VITE_ROBOKASSA_PASSWORD2` = ваш Password#2 из Robokassa
+
+**Для продакшена (с бэкендом):**
+- `VITE_DEMO_MODE` = `false`
+- `VITE_API_BASE_URL` = URL вашего бэкенда
+
+4. После добавления переменных нажмите **Redeploy** проекта
+
+**⚡ Важно:** В Vite переменные читаются во время сборки, поэтому после изменения env vars нужно обязательно пересобрать проект!
+
+### Деплой через GitHub
+
+1. Подключите репозиторий к Vercel
+2. Настройте Environment Variables (см. выше)
+3. Vercel автоматически развернет приложение
+4. После деплоя **обязательно добавьте** Success URL и Fail URL в личном кабинете Robokassa
 
 ## Интеграция с MikroTik
 
