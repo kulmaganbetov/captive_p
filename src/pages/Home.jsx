@@ -6,6 +6,7 @@ import PricingCard from '../components/PricingCard';
 import PaymentForm from '../components/PaymentForm';
 import Footer from '../components/Footer';
 import { useMikroTikParams } from '../utils/mikrotik';
+import { generateRobokassaUrl } from '../utils/robokassa';
 
 const PRICING_PLANS = [
   {
@@ -40,33 +41,42 @@ const Home = () => {
   const handlePayment = async (email) => {
     setIsLoading(true);
 
-    // Тестовый режим (без бэкенда)
-    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
-
-    if (isDemoMode) {
-      // Имитируем задержку сети
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Создаем тестовые параметры для Success страницы
-      const testInvId = Math.floor(Math.random() * 100000);
-      const successParams = new URLSearchParams({
-        OutSum: selectedPlan.price.toString(),
-        InvId: testInvId.toString(),
-        SignatureValue: 'test_signature_' + testInvId,
-        shp_email: email,
-        shp_plan_name: selectedPlan.name,
-        shp_duration: selectedPlan.duration,
-        shp_mac: mac,
-        shp_ip: ip,
-      });
-
-      // Перенаправляем на success страницу с тестовыми параметрами
-      navigate(`/success?${successParams.toString()}`);
-      return;
-    }
-
-    // Реальный режим с бэкендом
     try {
+      // Тестовый режим (с реальным Robokassa в тестовом режиме)
+      const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
+      if (isDemoMode) {
+        // Генерируем уникальный ID счета
+        const invId = Math.floor(Math.random() * 1000000);
+
+        // Получаем тестовые креденшиалы из .env
+        const merchantLogin = import.meta.env.VITE_ROBOKASSA_LOGIN || 'demo';
+        const merchantPassword1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1 || 'password_1';
+
+        // Генерируем URL для Robokassa
+        const robokassaUrl = await generateRobokassaUrl({
+          merchantLogin,
+          merchantPassword1,
+          outSum: selectedPlan.price,
+          invId,
+          description: `Оплата Wi-Fi: ${selectedPlan.name}`,
+          email,
+          planName: selectedPlan.name,
+          duration: selectedPlan.duration,
+          mac,
+          ip,
+          isTest: 1, // Тестовый режим
+        });
+
+        // Имитируем задержку (как будто отправляем запрос на бэкенд)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Перенаправляем на Robokassa
+        window.location.href = robokassaUrl;
+        return;
+      }
+
+      // Реальный режим с бэкендом
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
       const response = await fetch(`${baseUrl}/api/payment/create`, {

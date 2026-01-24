@@ -1,6 +1,68 @@
 /**
  * Утилита для работы с Robokassa KZ
+ * Документация: https://docs.robokassa.kz/
+ *
+ * Для тестового режима используем SHA256 вместо MD5
  */
+
+/**
+ * Генерирует SHA256 хеш
+ * @param {string} string - Строка для хеширования
+ * @returns {Promise<string>} SHA256 хеш в hex формате
+ */
+export async function generateSHA256(string) {
+  const msgBuffer = new TextEncoder().encode(string);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+/**
+ * Генерирует платежную ссылку Robokassa
+ * @param {Object} params - Параметры платежа
+ * @returns {Promise<string>} URL для перенаправления на оплату
+ */
+export const generateRobokassaUrl = async (params) => {
+  const {
+    merchantLogin,
+    merchantPassword1,
+    outSum,
+    invId,
+    description,
+    email,
+    planName,
+    duration,
+    mac,
+    ip,
+    isTest = 1, // 1 для теста, 0 для прода
+  } = params;
+
+  // Генерируем подпись: SHA256(MerchantLogin:OutSum:InvId:Password1)
+  const signatureString = `${merchantLogin}:${outSum}:${invId}:${merchantPassword1}`;
+  const signature = await generateSHA256(signatureString);
+
+  // Формируем URL параметры
+  const urlParams = new URLSearchParams({
+    MerchantLogin: merchantLogin,
+    OutSum: outSum,
+    InvId: invId,
+    Description: description,
+    SignatureValue: signature,
+    IsTest: isTest,
+    // Пользовательские параметры (shp_*)
+    shp_email: email,
+    shp_plan_name: planName,
+    shp_duration: duration,
+    shp_mac: mac || '',
+    shp_ip: ip || '',
+  });
+
+  // URL Robokassa
+  const robokassaUrl = 'https://auth.robokassa.kz/Merchant/Index.aspx';
+
+  return `${robokassaUrl}?${urlParams.toString()}`;
+};
 
 /**
  * Извлекает параметры платежа из URL
@@ -52,24 +114,31 @@ export const formatAmount = (amount) => {
 };
 
 /**
- * Получает статус платежа с бэкенда
- * @param {string} invId - ID платежа
- * @returns {Promise<Object>} Результат проверки статуса
+ * Проверяет подпись от Robokassa (ResultURL)
+ * @param {Object} params - Параметры от Robokassa
+ * @param {string} password2 - Merchant Password 2
+ * @returns {Promise<boolean>} true если подпись верна
  */
-export const checkPaymentStatus = async (invId) => {
-  try {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-    const response = await fetch(`${baseUrl}/api/payment/status/${invId}`);
+export const checkSignatureResult = async (params, password2) => {
+  const { outSum, invId, signatureValue } = params;
+  const signatureString = `${outSum}:${invId}:${password2}`;
+  const calculatedSignature = await generateSHA256(signatureString);
 
-    if (!response.ok) {
-      throw new Error('Failed to check payment status');
-    }
+  return calculatedSignature.toLowerCase() === signatureValue.toLowerCase();
+};
 
-    return await response.json();
-  } catch (error) {
-    console.error('Error checking payment status:', error);
-    throw error;
-  }
+/**
+ * Проверяет подпись от Robokassa (SuccessURL)
+ * @param {Object} params - Параметры от Robokassa
+ * @param {string} password1 - Merchant Password 1
+ * @returns {Promise<boolean>} true если подпись верна
+ */
+export const checkSignatureSuccess = async (params, password1) => {
+  const { outSum, invId, signatureValue } = params;
+  const signatureString = `${outSum}:${invId}:${password1}`;
+  const calculatedSignature = await generateSHA256(signatureString);
+
+  return calculatedSignature.toLowerCase() === signatureValue.toLowerCase();
 };
 
 /**
