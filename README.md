@@ -289,22 +289,26 @@ OK{InvId}
 
 Приложение использует **SHA256** для генерации подписи платежа (SignatureValue).
 
-**Формула подписи для запроса оплаты:**
+**Формула подписи для запроса оплаты (с shp_ параметрами):**
 ```
-SHA256(MerchantLogin:OutSum:InvId:Password#1)
-```
-
-**Формула подписи для Success URL:**
-```
-SHA256(OutSum:InvId:Password#1)
+SHA256(MerchantLogin:OutSum:InvId:Password#1:shp_duration=value:shp_email=value:shp_ip=value:shp_mac=value:shp_plan_name=value)
 ```
 
-**Формула подписи для Result URL:**
+**Формула подписи для Success URL (с shp_ параметрами):**
 ```
-SHA256(OutSum:InvId:Password#2)
+SHA256(OutSum:InvId:Password#1:shp_duration=value:shp_email=value:shp_ip=value:shp_mac=value:shp_plan_name=value)
 ```
 
-**Важно:** В личном кабинете Robokassa в разделе "Технические настройки" необходимо выбрать алгоритм хеширования **SHA256**.
+**Формула подписи для Result URL (с shp_ параметрами):**
+```
+SHA256(OutSum:InvId:Password#2:shp_duration=value:shp_email=value:shp_ip=value:shp_mac=value:shp_plan_name=value)
+```
+
+**⚠️ ВАЖНО:**
+- В личном кабинете Robokassa выберите алгоритм хеширования **SHA256**
+- При использовании дополнительных параметров (shp_*), они **ОБЯЗАТЕЛЬНО** должны быть включены в формулу подписи
+- shp_ параметры должны быть отсортированы **в алфавитном порядке**
+- Пустые значения тоже должны быть включены (например, `shp_ip=` если IP пустой)
 
 ### Параметры Success URL
 

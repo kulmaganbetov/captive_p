@@ -38,8 +38,26 @@ export const generateRobokassaUrl = async (params) => {
     isTest = 1, // 1 для теста, 0 для прода
   } = params;
 
-  // Генерируем подпись: SHA256(MerchantLogin:OutSum:InvId:Password1)
-  const signatureString = `${merchantLogin}:${outSum}:${invId}:${merchantPassword1}`;
+  // Собираем shp_ параметры в алфавитном порядке для подписи
+  // ВАЖНО: Robokassa требует включать ВСЕ shp_ параметры в формулу подписи
+  const shpParams = {
+    shp_duration: duration,
+    shp_email: email,
+    shp_ip: ip || '',
+    shp_mac: mac || '',
+    shp_plan_name: planName,
+  };
+
+  // Сортируем по ключу и формируем строку для подписи
+  const shpString = Object.keys(shpParams)
+    .sort()
+    .map(key => `${key}=${shpParams[key]}`)
+    .join(':');
+
+  // Генерируем подпись: SHA256(MerchantLogin:OutSum:InvId:Password1:shp_...)
+  const signatureString = `${merchantLogin}:${outSum}:${invId}:${merchantPassword1}:${shpString}`;
+  console.log('🔐 Signature string:', signatureString);
+
   const signature = await generateSHA256(signatureString);
 
   // Формируем URL параметры
@@ -120,8 +138,23 @@ export const formatAmount = (amount) => {
  * @returns {Promise<boolean>} true если подпись верна
  */
 export const checkSignatureResult = async (params, password2) => {
-  const { outSum, invId, signatureValue } = params;
-  const signatureString = `${outSum}:${invId}:${password2}`;
+  const { outSum, invId, signatureValue, duration, email, ip, mac, planName } = params;
+
+  // Собираем shp_ параметры в алфавитном порядке
+  const shpParams = {
+    shp_duration: duration || '',
+    shp_email: email || '',
+    shp_ip: ip || '',
+    shp_mac: mac || '',
+    shp_plan_name: planName || '',
+  };
+
+  const shpString = Object.keys(shpParams)
+    .sort()
+    .map(key => `${key}=${shpParams[key]}`)
+    .join(':');
+
+  const signatureString = `${outSum}:${invId}:${password2}:${shpString}`;
   const calculatedSignature = await generateSHA256(signatureString);
 
   return calculatedSignature.toLowerCase() === signatureValue.toLowerCase();
@@ -134,8 +167,23 @@ export const checkSignatureResult = async (params, password2) => {
  * @returns {Promise<boolean>} true если подпись верна
  */
 export const checkSignatureSuccess = async (params, password1) => {
-  const { outSum, invId, signatureValue } = params;
-  const signatureString = `${outSum}:${invId}:${password1}`;
+  const { outSum, invId, signatureValue, duration, email, ip, mac, planName } = params;
+
+  // Собираем shp_ параметры в алфавитном порядке
+  const shpParams = {
+    shp_duration: duration || '',
+    shp_email: email || '',
+    shp_ip: ip || '',
+    shp_mac: mac || '',
+    shp_plan_name: planName || '',
+  };
+
+  const shpString = Object.keys(shpParams)
+    .sort()
+    .map(key => `${key}=${shpParams[key]}`)
+    .join(':');
+
+  const signatureString = `${outSum}:${invId}:${password1}:${shpString}`;
   const calculatedSignature = await generateSHA256(signatureString);
 
   return calculatedSignature.toLowerCase() === signatureValue.toLowerCase();
