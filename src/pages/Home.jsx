@@ -40,6 +40,32 @@ const Home = () => {
   const handlePayment = async (email) => {
     setIsLoading(true);
 
+    // Тестовый режим (без бэкенда)
+    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
+    if (isDemoMode) {
+      // Имитируем задержку сети
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Создаем тестовые параметры для Success страницы
+      const testInvId = Math.floor(Math.random() * 100000);
+      const successParams = new URLSearchParams({
+        OutSum: selectedPlan.price.toString(),
+        InvId: testInvId.toString(),
+        SignatureValue: 'test_signature_' + testInvId,
+        shp_email: email,
+        shp_plan_name: selectedPlan.name,
+        shp_duration: selectedPlan.duration,
+        shp_mac: mac,
+        shp_ip: ip,
+      });
+
+      // Перенаправляем на success страницу с тестовыми параметрами
+      navigate(`/success?${successParams.toString()}`);
+      return;
+    }
+
+    // Реальный режим с бэкендом
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 

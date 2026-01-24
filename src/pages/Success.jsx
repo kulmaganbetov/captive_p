@@ -31,6 +31,26 @@ const Success = () => {
           return;
         }
 
+        // Тестовый режим (без бэкенда)
+        const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
+        if (isDemoMode) {
+          // Имитируем задержку проверки
+          await new Promise(resolve => setTimeout(resolve, 1500));
+
+          // В тестовом режиме сразу возвращаем успешный результат
+          setPaymentData({
+            planName: planName,
+            duration: duration,
+            email: email,
+            amount: outSum,
+            invId: invId,
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Реальный режим с бэкендом
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
         // Отправляем запрос на бэкенд для верификации платежа

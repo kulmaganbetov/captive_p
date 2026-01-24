@@ -63,10 +63,24 @@ npm install
 cp .env.example .env
 ```
 
-Укажите URL вашего Django бэкенда:
+**Для тестирования БЕЗ бэкенда (Demo Mode):**
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_DEMO_MODE=true
+```
+
+В демо-режиме:
+- ✅ Оплата работает без реального бэкенда
+- ✅ Все страницы (Home, Success, Fail) полностью функциональны
+- ✅ Можно протестировать весь UI и UX
+- ✅ Имитируется задержка сети для реалистичности
+
+**Для продакшена с реальным бэкендом:**
 
 ```env
 VITE_API_BASE_URL=https://your-backend-api.com
+VITE_DEMO_MODE=false
 ```
 
 ### Разработка
