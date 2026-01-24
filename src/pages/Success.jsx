@@ -25,6 +25,14 @@ const Success = () => {
         const planName = searchParams.get('shp_plan_name');
         const duration = searchParams.get('shp_duration');
 
+        console.log('✅ Success page loaded with params:', {
+          outSum,
+          invId,
+          email,
+          planName,
+          duration,
+        });
+
         if (!invId) {
           setError('Отсутствуют данные о платеже');
           setIsLoading(false);
@@ -34,7 +42,15 @@ const Success = () => {
         // Тестовый режим (без бэкенда)
         const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
+        console.log('🔍 Demo mode check:', {
+          isDemoMode,
+          envValue: import.meta.env.VITE_DEMO_MODE,
+          type: typeof import.meta.env.VITE_DEMO_MODE,
+        });
+
         if (isDemoMode) {
+          console.log('✅ Demo mode ACTIVE - skipping backend verification');
+
           // Имитируем задержку проверки
           await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -50,8 +66,12 @@ const Success = () => {
           return;
         }
 
+        console.log('⚠️ Demo mode INACTIVE - will try backend verification');
+
         // Реальный режим с бэкендом
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+        console.log('🔗 Backend URL:', baseUrl);
 
         // Отправляем запрос на бэкенд для верификации платежа
         const response = await fetch(`${baseUrl}/api/payment/success?${searchParams.toString()}`, {
