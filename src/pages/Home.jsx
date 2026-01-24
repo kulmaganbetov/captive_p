@@ -54,29 +54,26 @@ const Home = () => {
           mac: mac,
           ip: ip,
           link_orig: linkOrig,
+          plan_name: selectedPlan.name,
+          plan_duration: selectedPlan.duration,
+          plan_price: selectedPlan.price,
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Успешная оплата - переходим на страницу успеха
-        navigate('/success', {
-          state: {
-            planName: selectedPlan.name,
-            duration: selectedPlan.duration,
-            email: email,
-          },
-        });
+      if (response.ok && data.payment_url) {
+        // Перенаправляем пользователя на страницу оплаты Robokassa
+        window.location.href = data.payment_url;
       } else {
         // Обработка ошибки
-        alert(data.error || 'Произошла ошибка при оплате. Попробуйте снова.');
+        setIsLoading(false);
+        alert(data.error || 'Произошла ошибка при создании платежа. Попробуйте снова.');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Произошла ошибка при подключении к серверу. Попробуйте снова.');
-    } finally {
       setIsLoading(false);
+      alert('Произошла ошибка при подключении к серверу. Попробуйте снова.');
     }
   };
 
