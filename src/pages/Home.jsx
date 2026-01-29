@@ -6,6 +6,7 @@ import PricingCard from '../components/PricingCard';
 import PaymentForm from '../components/PaymentForm';
 import Footer from '../components/Footer';
 import { useMikroTikParams } from '../utils/mikrotik';
+import { generateRobokassaUrl } from '../utils/robokassa';
 
 const PRICING_PLANS = [
   {
@@ -41,6 +42,60 @@ const Home = () => {
     setIsLoading(true);
 
     try {
+      // Тестовый режим (с реальным Robokassa в тестовом режиме)
+      const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
+      console.log('💳 Payment initiated:', {
+        email,
+        plan: selectedPlan,
+        isDemoMode,
+        envDemoMode: import.meta.env.VITE_DEMO_MODE,
+      });
+
+      if (isDemoMode) {
+        console.log('🔧 DEMO MODE ENABLED');
+
+        // Генерируем уникальный ID счета
+        const invId = Math.floor(Math.random() * 1000000);
+
+        // Получаем тестовые креденшиалы из .env
+        const merchantLogin = import.meta.env.VITE_ROBOKASSA_LOGIN || 'demo';
+        const merchantPassword1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1 || 'password_1';
+
+        console.log('🔑 Robokassa credentials:', {
+          merchantLogin,
+          hasPassword: !!merchantPassword1,
+          invId,
+          outSum: selectedPlan.price,
+        });
+
+        // Генерируем URL для Robokassa
+        const robokassaUrl = await generateRobokassaUrl({
+          merchantLogin,
+          merchantPassword1,
+          outSum: selectedPlan.price,
+          invId,
+          description: `Оплата Wi-Fi: ${selectedPlan.name}`,
+          email,
+          planName: selectedPlan.name,
+          duration: selectedPlan.duration,
+          mac,
+          ip,
+          isTest: 1, // Тестовый режим
+        });
+
+        console.log('🔗 Generated Robokassa URL:', robokassaUrl);
+
+        // Имитируем задержку (как будто отправляем запрос на бэкенд)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Перенаправляем на Robokassa
+        console.log('➡️ Redirecting to Robokassa...');
+        window.location.href = robokassaUrl;
+        return;
+      }
+
+      // Реальный режим с бэкендом
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
       const response = await fetch(`${baseUrl}/api/payment/create`, {
@@ -54,29 +109,26 @@ const Home = () => {
           mac: mac,
           ip: ip,
           link_orig: linkOrig,
+          plan_name: selectedPlan.name,
+          plan_duration: selectedPlan.duration,
+          plan_price: selectedPlan.price,
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Успешная оплата - переходим на страницу успеха
-        navigate('/success', {
-          state: {
-            planName: selectedPlan.name,
-            duration: selectedPlan.duration,
-            email: email,
-          },
-        });
+      if (response.ok && data.payment_url) {
+        // Перенаправляем пользователя на страницу оплаты Robokassa
+        window.location.href = data.payment_url;
       } else {
         // Обработка ошибки
-        alert(data.error || 'Произошла ошибка при оплате. Попробуйте снова.');
+        setIsLoading(false);
+        alert(data.error || 'Произошла ошибка при создании платежа. Попробуйте снова.');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Произошла ошибка при подключении к серверу. Попробуйте снова.');
-    } finally {
       setIsLoading(false);
+      alert('Произошла ошибка при подключении к серверу. Попробуйте снова.');
     }
   };
 
