@@ -6,130 +6,39 @@ import PricingCard from '../components/PricingCard';
 import PaymentForm from '../components/PaymentForm';
 import Footer from '../components/Footer';
 import { useMikroTikParams } from '../utils/mikrotik';
-import { generateRobokassaUrl } from '../utils/robokassa';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../locales/translations';
 
 const PRICING_PLANS = [
-  {
-    id: 'start',
-    name: 'Старт',
-    duration: '1 час',
-    price: 200,
-    popular: false,
-  },
-  {
-    id: 'business',
-    name: 'Бизнес',
-    duration: '3 часа',
-    price: 500,
-    popular: true,
-  },
-  {
-    id: 'unlimited',
-    name: 'Безлимит',
-    duration: '24 часа',
-    price: 1000,
-    popular: false,
-  },
+  { id: 'start',     nameKey: 'start',     price: 200,  popular: false },
+  { id: 'business',  nameKey: 'business',  price: 500,  popular: true  },
+  { id: 'unlimited', nameKey: 'unlimited', price: 1000, popular: false },
 ];
 
 const Home = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { mac, ip, linkOrig } = useMikroTikParams();
+  const { mac, ip } = useMikroTikParams();
+  const { language } = useLanguage();
+  const t = useTranslation(language);
 
   const handlePayment = async (email) => {
     setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    try {
-      // Тестовый режим (с реальным Robokassa в тестовом режиме)
-      const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+    const invId = Math.floor(Math.random() * 1000000);
+    const successParams = new URLSearchParams({
+      OutSum: selectedPlan.price.toString(),
+      InvId: invId.toString(),
+      shp_email: email,
+      shp_plan_name: t.plans[selectedPlan.nameKey].name,
+      shp_duration: t.plans[selectedPlan.nameKey].duration,
+      shp_mac: mac || '',
+      shp_ip: ip || '',
+    });
 
-      console.log('💳 Payment initiated:', {
-        email,
-        plan: selectedPlan,
-        isDemoMode,
-        envDemoMode: import.meta.env.VITE_DEMO_MODE,
-      });
-
-      if (isDemoMode) {
-        console.log('🔧 DEMO MODE ENABLED');
-
-        // Генерируем уникальный ID счета
-        const invId = Math.floor(Math.random() * 1000000);
-
-        // Получаем тестовые креденшиалы из .env
-        const merchantLogin = import.meta.env.VITE_ROBOKASSA_LOGIN || 'demo';
-        const merchantPassword1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1 || 'password_1';
-
-        console.log('🔑 Robokassa credentials:', {
-          merchantLogin,
-          hasPassword: !!merchantPassword1,
-          invId,
-          outSum: selectedPlan.price,
-        });
-
-        // Генерируем URL для Robokassa
-        const robokassaUrl = await generateRobokassaUrl({
-          merchantLogin,
-          merchantPassword1,
-          outSum: selectedPlan.price,
-          invId,
-          description: `Оплата Wi-Fi: ${selectedPlan.name}`,
-          email,
-          planName: selectedPlan.name,
-          duration: selectedPlan.duration,
-          mac,
-          ip,
-          isTest: 1, // Тестовый режим
-        });
-
-        console.log('🔗 Generated Robokassa URL:', robokassaUrl);
-
-        // Имитируем задержку (как будто отправляем запрос на бэкенд)
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Перенаправляем на Robokassa
-        console.log('➡️ Redirecting to Robokassa...');
-        window.location.href = robokassaUrl;
-        return;
-      }
-
-      // Реальный режим с бэкендом
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
-      const response = await fetch(`${baseUrl}/api/payment/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan_id: selectedPlan.id,
-          email: email,
-          mac: mac,
-          ip: ip,
-          link_orig: linkOrig,
-          plan_name: selectedPlan.name,
-          plan_duration: selectedPlan.duration,
-          plan_price: selectedPlan.price,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.payment_url) {
-        // Перенаправляем пользователя на страницу оплаты Robokassa
-        window.location.href = data.payment_url;
-      } else {
-        // Обработка ошибки
-        setIsLoading(false);
-        alert(data.error || 'Произошла ошибка при создании платежа. Попробуйте снова.');
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      setIsLoading(false);
-      alert('Произошла ошибка при подключении к серверу. Попробуйте снова.');
-    }
+    navigate(`/success?${successParams.toString()}`);
   };
 
   return (
@@ -144,7 +53,7 @@ const Home = () => {
         >
           {/* Pricing Cards */}
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Выберите тариф</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.plans.selectPlan}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {PRICING_PLANS.map((plan, index) => (
                 <motion.div
@@ -154,7 +63,12 @@ const Home = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <PricingCard
-                    plan={plan}
+                    plan={{
+                      ...plan,
+                      name: t.plans[plan.nameKey].name,
+                      duration: t.plans[plan.nameKey].duration,
+                      popularLabel: t.plans.popular,
+                    }}
                     isSelected={selectedPlan?.id === plan.id}
                     onSelect={() => setSelectedPlan(plan)}
                   />
@@ -166,9 +80,14 @@ const Home = () => {
           {/* Payment Form */}
           <div className="bg-white rounded-2xl shadow-soft p-6">
             <PaymentForm
-              selectedPlan={selectedPlan}
+              selectedPlan={selectedPlan ? {
+                ...selectedPlan,
+                name: t.plans[selectedPlan.nameKey].name,
+                duration: t.plans[selectedPlan.nameKey].duration,
+              } : null}
               onSubmit={handlePayment}
               isLoading={isLoading}
+              t={t.payment}
             />
           </div>
 
@@ -179,8 +98,8 @@ const Home = () => {
             transition={{ delay: 0.4 }}
             className="mt-6 text-center text-sm text-gray-500"
           >
-            <p>После оплаты вы автоматически получите доступ к интернету</p>
-            <p className="mt-1">Чек будет отправлен на указанный email</p>
+            <p>{t.payment.afterPayment}</p>
+            <p className="mt-1">{t.payment.receiptEmail}</p>
           </motion.div>
         </motion.div>
       </main>
