@@ -16,10 +16,11 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <h3 className="text-white font-semibold mb-3">{t.footer.company}</h3>
+            <p className="text-sm text-gray-400 mb-2">{t.footer.ownerName}</p>
             <div className="space-y-2 text-sm">
               <p className="flex items-start gap-2">
                 <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>{t.footer.bin}: 941014300163</span>
+                <span>{t.footer.bin}: 840726401204</span>
               </p>
               <p className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
