@@ -11,11 +11,11 @@ const Fail = () => {
   const [paymentData, setPaymentData] = useState(null);
 
   useEffect(() => {
-    // Получаем параметры от Robokassa
+    // Получаем параметры платежа
     const outSum = searchParams.get('OutSum');
     const invId = searchParams.get('InvId');
 
-    // Дополнительные параметры (custom parameters)
+    // Дополнительные параметры
     const email = searchParams.get('shp_email');
     const planName = searchParams.get('shp_plan_name');
     const duration = searchParams.get('shp_duration');

@@ -16,10 +16,11 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <h3 className="text-white font-semibold mb-3">{t.footer.company}</h3>
+            <p className="text-sm text-gray-400 mb-2">{t.footer.ownerName}</p>
             <div className="space-y-2 text-sm">
               <p className="flex items-start gap-2">
                 <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>{t.footer.bin}: 941014300163</span>
+                <span>{t.footer.bin}: 840726401204</span>
               </p>
               <p className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -50,18 +51,35 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Security */}
+          {/* Security & Payment */}
           <div>
             <h3 className="text-white font-semibold mb-3">{language === 'ru' ? 'Безопасность' : 'Қауіпсіздік'}</h3>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm mb-3">
               <Shield className="w-4 h-4 text-green-400" />
               <span>{t.footer.securePayment}</span>
             </div>
-            <p className="text-xs text-gray-400 mt-3">
-              {language === 'ru'
-                ? 'Платежи обрабатываются через защищенный шлюз Robokassa'
-                : 'Төлемдер Robokassa қорғалған шлюзі арқылы өңделеді'}
+            <p className="text-xs text-gray-400 mb-3">
+              {t.footer.paymentProcessor}
             </p>
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-2">{t.footer.acceptedCards}:</p>
+              <div className="flex items-center gap-2">
+                <div className="bg-white px-2 py-1 rounded text-xs font-semibold text-blue-900">
+                  VISA
+                </div>
+                <div className="bg-white px-2 py-1 rounded text-xs font-semibold text-orange-600">
+                  Mastercard
+                </div>
+              </div>
+              <a
+                href="https://tiptoppay.kz/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors mt-2 inline-block"
+              >
+                TipTop Pay →
+              </a>
+            </div>
           </div>
         </div>
 
