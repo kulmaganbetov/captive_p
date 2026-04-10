@@ -6,6 +6,7 @@ import Fail from './pages/Fail';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Services from './pages/Services';
+import TestPayment from './pages/TestPayment';
 
 function App() {
   return (
@@ -15,9 +16,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/success" element={<Success />} />
           <Route path="/fail" element={<Fail />} />
+          <Route path="/failure" element={<Fail />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/test-payment" element={<TestPayment />} />
         </Routes>
       </Router>
     </LanguageProvider>
