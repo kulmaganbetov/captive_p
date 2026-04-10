@@ -72,12 +72,12 @@ const Footer = () => {
                 </div>
               </div>
               <a
-                href="https://tiptoppay.kz/"
+                href="https://freedompay.kz/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-blue-400 hover:text-blue-300 transition-colors mt-2 inline-block"
               >
-                TipTop Pay →
+                FreedomPay →
               </a>
             </div>
           </div>

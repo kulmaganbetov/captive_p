@@ -18,7 +18,7 @@
 - ⚡ Быстрая загрузка и отзывчивый интерфейс
 - 🎭 Плавные анимации при взаимодействии
 - ✅ Валидация форм
-- 🔒 Безопасная обработка платежей через TipTop Pay
+- 🔒 Безопасная обработка платежей через FreedomPay
 - 💳 Поддержка Visa и Mastercard
 
 ## Структура проекта
@@ -75,10 +75,10 @@ VITE_DEMO_MODE=true
 - ✅ Имитируется задержка сети для реалистичности
 - ✅ Никакие реальные платежи не производятся
 
-**Для интеграции с реальным TipTop Pay:**
+**Для интеграции с реальным FreedomPay:**
 - Требуется бэкенд для обработки платежей
-- Информация о TipTop Pay: https://tiptoppay.kz/
-- Поддержка платежей: support-kz@tiptoppay.inc
+- Информация о FreedomPay: https://freedompay.kz/
+- Поддержка платежей: support@freedompay.kz
 
 ### Разработка
 
@@ -133,15 +133,15 @@ https://your-domain.vercel.app/?mac=AA:BB:CC:DD:EE:FF&ip=10.0.0.1&linkorig=http:
 
 ## Интеграция с платежной системой
 
-Приложение использует платежную систему **TipTop Pay** (https://tiptoppay.kz/).
+Приложение использует платежную систему **FreedomPay** (https://freedompay.kz/).
 
 ### Frontend-only режим (текущая реализация)
 
 В текущей версии приложение работает без бэкенда - платежи симулируются на фронтенде для демонстрации UI/UX.
 
-### Интеграция с реальным TipTop Pay
+### Интеграция с реальным FreedomPay
 
-Для интеграции с реальной платежной системой TipTop Pay требуется бэкенд со следующими возможностями:
+Для интеграции с реальной платежной системой FreedomPay требуется бэкенд со следующими возможностями:
 
 ### 1. Создание платежа
 
@@ -165,7 +165,7 @@ Response (успех):
 ```json
 {
   "success": true,
-  "payment_url": "https://tiptoppay.kz/payment/..."
+  "payment_url": "https://checkout.freedompay.kz/..."
 }
 ```
 
@@ -178,15 +178,15 @@ Response (ошибка):
 
 **Важно:** Бэкенд должен:
 - Создать запись платежа в БД
-- Интегрироваться с TipTop Pay API
-- Вернуть URL для перенаправления пользователя на страницу оплаты TipTop Pay
+- Интегрироваться с FreedomPay API
+- Вернуть URL для перенаправления пользователя на страницу оплаты FreedomPay
 - Включить success_url и fail_url в параметры платежа
 
 ### 2. Подтверждение успешной оплаты
 
 **GET** `/api/payment/success`
 
-Query параметры от TipTop Pay:
+Query параметры от FreedomPay:
 - `OutSum` - Сумма платежа
 - `InvId` - ID платежа
 - `SignatureValue` - Подпись для верификации
@@ -212,7 +212,7 @@ Response:
 
 **GET** `/api/payment/fail`
 
-Query параметры от TipTop Pay:
+Query параметры от FreedomPay:
 - `OutSum` - Сумма платежа
 - `InvId` - ID платежа
 - Пользовательские параметры
@@ -233,19 +233,19 @@ Response:
 
 **POST** `/api/payment/webhook`
 
-TipTop Pay отправляет POST запрос на этот URL после успешной оплаты для server-to-server подтверждения.
+FreedomPay отправляет POST запрос на этот URL после успешной оплаты для server-to-server подтверждения.
 
 **Важно:**
 - Этот callback критически важен для безопасности
 - Должен проверять подпись платежа
 - Должен обновлять статус платежа в БД
-- Документация TipTop Pay: https://tiptoppay.kz/
+- Документация FreedomPay: https://freedompay.kz/
 
-## Технические детали TipTop Pay
+## Технические детали FreedomPay
 
 ### Безопасность платежей
 
-TipTop Pay обеспечивает:
+FreedomPay обеспечивает:
 - **PCI DSS 3.0** - стандарт безопасности данных платежных карт
 - **3-D Secure** - дополнительная аутентификация держателя карты
 - **SSL шифрование** - защита передачи данных
@@ -253,7 +253,7 @@ TipTop Pay обеспечивает:
 
 ### Параметры Success URL
 
-После успешной оплаты TipTop Pay перенаправит пользователя на:
+После успешной оплаты FreedomPay перенаправит пользователя на:
 ```
 https://your-domain.vercel.app/success?OutSum=500&InvId=123&shp_email=...&shp_plan_name=...
 ```
@@ -274,10 +274,10 @@ https://your-domain.vercel.app/fail?OutSum=500&InvId=123&shp_email=...
 - `shp_mac` - MAC адрес устройства
 - `shp_ip` - IP адрес устройства
 
-### Контакты TipTop Pay
+### Контакты FreedomPay
 
-- Сайт: https://tiptoppay.kz/
-- Поддержка: support-kz@tiptoppay.inc
+- Сайт: https://freedompay.kz/
+- Поддержка: support@freedompay.kz
 
 ## Тарифные планы
 
